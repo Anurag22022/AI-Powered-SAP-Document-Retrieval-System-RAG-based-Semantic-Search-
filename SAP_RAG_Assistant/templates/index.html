@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SAP RAG Assistant</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .container-box {
+            margin-top: 80px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .answer-box {
+            background: #eef5ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="container-box">
+            <h2 class="text-center">🔍 SAP RAG Assistant</h2>
+            <p class="text-center text-muted">Ask SAP-related questions and use optional agent actions.</p>
+
+            <!-- Input Row -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-9">
+                    <input type="text" id="question" class="form-control" placeholder="e.g. What is SAP FI posting?">
+                </div>
+
+                <div class="col-md-3">
+                    <select id="agentAction" class="form-select">
+                        <option value="">No agent action</option>
+                        <option value="summarize">Summarize</option>
+                        <option value="extract_financial_lines">Extract Financial Lines</option>
+                        <option value="run_report_simulation">Run Report Simulation</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary w-100" onclick="askQuery()">Ask</button>
+
+            <div id="answerBox" class="answer-box mt-3"></div>
+        </div>
+    </div>
+
+    <script>
+        async function askQuery() {
+            const question = document.getElementById("question").value;
+            const agentAction = document.getElementById("agentAction").value;
+            const answerBox = document.getElementById("answerBox");
+
+            if (!question.trim()) {
+                answerBox.innerText = "Please enter a question.";
+                return;
+            }
+
+            answerBox.innerText = "Processing...";
+
+            try {
+                const payload = { question: question };
+                if (agentAction) {
+                    payload.agent_action = agentAction;
+                }
+
+                const response = await fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.answer) {
+                    answerBox.innerText = data.answer;
+                } else {
+                    answerBox.innerText = "No answer returned.";
+                }
+
+            } catch (error) {
+                answerBox.innerText = "Error connecting to server.";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
